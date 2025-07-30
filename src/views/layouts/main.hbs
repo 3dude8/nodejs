@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{!-- 'pageTitle' comes from your res.render() data --}}
+    <title>{{pageTitle}} - My Node.js App</title>
+    {{!-- Example link for a global CSS file, assumes 'public' folder setup --}}
+    {{!-- <link rel="stylesheet" href="/css/style.css"> --}}
+</head>
+<body>
+    <header>
+        <h1>My Awesome Application</h1>
+        <nav>
+            <a href="/">Home</a> |
+            <a href="/login">Login</a> |
+            {{!-- Add more navigation links here --}}
+        </nav>
+    </header>
+
+    <main>
+        {{{body}}} {{!-- THIS IS WHERE YOUR VIEW CONTENT (e.g., from authViews.hbs) WILL BE INJECTED --}}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Node.js Express App</p>
+    </footer>
+
+    {{!-- Example link for a global JavaScript file --}}
+    {{!-- <script src="/js/main.js"></script> --}}
+</body>
+</html>

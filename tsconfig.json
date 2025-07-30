@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {
   "compilerOptions": {
     "target": "ES6",
@@ -10,16 +9,3 @@
   },
   "include": ["src"]
 }
-=======
-{
-  "compilerOptions": {
-    "target": "ES6",
-    "module": "CommonJS",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "outDir": "./dist",
-    "rootDir": "./src"
-  },
-  "include": ["src"]
-}
->>>>>>> 508a9fd (Initial project setup with user API)

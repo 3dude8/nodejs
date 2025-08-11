@@ -1,0 +1,28 @@
+{{!-- src/views/register.hbs --}}
+
+<div class="auth-container">
+    <h2>{{pageTitle}}</h2>
+    <p>{{message}}</p>
+
+    <div class="form-section register-form">
+        <h3>Create a New Account</h3>
+        <form action="/auth/register" method="POST"> {{!-- This would be your POST /auth/register endpoint --}}
+            <div class="form-group">
+                <label for="register-name">Name:</label>
+                <input type="text" id="register-name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="register-email">Email:</label>
+                <input type="email" id="register-email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="register-password">Password:</label>
+                <input type="password" id="register-password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-success">Register</button>
+        </form>
+        <p>Already have an account? <a href="/login">Login here</a>.</p>
+    </div>
+
+    <p class="footer-note">Current time in Palestine: {{currentTime}}</p>
+</div>

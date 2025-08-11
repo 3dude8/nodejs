@@ -1,0 +1,20 @@
+{{!-- src/views/dashboard.hbs --}}
+
+<div class="dashboard-container">
+    <h2>{{pageTitle}}</h2>
+    <p>{{message}}</p>
+
+    <p>Welcome to your personalized dashboard, {{userName}}!</p>
+    <p>Your email: <strong>{{userEmail}}</strong></p> 
+
+    <h3>Your Recent Activity:</h3>
+    <ul>
+        {{#each recentActivities}}
+            <li>{{this}}</li>
+        {{else}}
+            <li>No recent activity to display.</li>
+        {{/each}}
+    </ul>
+
+    <a href="/logout">Logout</a>
+</div>

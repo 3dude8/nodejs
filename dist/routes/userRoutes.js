@@ -1,63 +1,61 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const users_1 = require("../types/users");
-const userServices_1 = require("../services/userServices");
+// Keep your existing controller import for API endpoints
+const authController_1 = require("../controllers/authController");
 const router = (0, express_1.Router)();
-router.get('/users', (req, res) => {
-    const users = (0, userServices_1.readUsers)();
-    res.json(users);
+// Helper to get current time in Palestine
+const getPalestineTime = () => {
+    return new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Jerusalem', // Specific for Palestine/Israel time
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false // 24-hour format
+    }).format(new Date());
+};
+// --- View Rendering Routes ---
+// GET route for the Login Page
+// This will render 'src/views/login.hbs'
+router.get('/login', (req, res) => {
+    res.render('login', {
+        pageTitle: 'User Login',
+        message: 'Please enter your credentials.',
+        currentTime: getPalestineTime()
+    });
 });
-router.get('/users/:id', (req, res) => {
-    const users = (0, userServices_1.readUsers)();
-    const user = users.find(u => u.id === parseInt(req.params.id));
-    if (!user)
-        return res.status(404).json({ message: "User not found" });
-    res.json(user);
+// GET route for the Register Page
+// This will render 'src/views/register.hbs'
+router.get('/register', (req, res) => {
+    res.render('register', {
+        pageTitle: 'Create New Account',
+        message: 'Join us today!',
+        currentTime: getPalestineTime()
+    });
 });
-router.post('/users', (req, res) => {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password || password.length < 6) {
-        return res.status(400).json({ message: 'Invalid input' });
-    }
-    const users = (0, userServices_1.readUsers)();
-    const newUser = new users_1.User(users.length ? users[users.length - 1].id + 1 : 1, name, email, password);
-    users.push(newUser);
-    (0, userServices_1.writeUsers)(users);
-    res.status(201).json(newUser);
+// GET route for a simple Dashboard Page (placeholder for logged-in view)
+// This will render 'src/views/dashboard.hbs'
+router.get('/dashboard', (req, res) => {
+    // In a real app, you'd fetch actual user data from session/DB here
+    const userName = 'Demo User'; // Placeholder name
+    const recentActivities = [
+        'Logged in 5 minutes ago',
+        'Viewed profile',
+        'Made a test payment'
+    ];
+    res.render('dashboard', {
+        pageTitle: 'Your Personal Dashboard',
+        message: 'Welcome back!',
+        userName: userName, // Pass user's name to template
+        recentActivities: recentActivities, // Pass activities to template
+        currentTime: getPalestineTime()
+    });
 });
-router.put('/users/:id', (req, res) => {
-    const users = (0, userServices_1.readUsers)();
-    const index = users.findIndex(u => u.id === parseInt(req.params.id));
-    if (index === -1)
-        return res.status(404).json({ message: "User not found" });
-    const { name, email, password } = req.body;
-    if (password && password.length < 6) {
-        return res.status(400).json({ message: 'Password must be at least 6 characters' });
-    }
-    users[index] = new users_1.User(users[index].id, name || users[index].name, email || users[index].email, password || users[index].password);
-    (0, userServices_1.writeUsers)(users);
-    res.json(users[index]);
-});
-router.delete('/users/:id', (req, res) => {
-    const users = (0, userServices_1.readUsers)();
-    const index = users.findIndex(u => u.id === parseInt(req.params.id));
-    if (index === -1)
-        return res.status(404).json({ message: "User not found" });
-    const deletedUser = users.splice(index, 1)[0];
-    (0, userServices_1.writeUsers)(users);
-    res.json(deletedUser);
-});
-//  the search route
-router.get('/users/search', (req, res) => {
-    const query = (req.query.query || '').toLowerCase();
-    const users = (0, userServices_1.readUsers)();
-    const filtered = users.filter(u => u.name.toLowerCase().includes(query) ||
-        u.email.toLowerCase().includes(query)).map(u => ({
-        id: u.id,
-        name: u.name,
-        email: u.email
-    }));
-    res.json(filtered);
-});
+// --- API Routes (These are separate from view rendering) ---
+// POST route for handling user login form submission (API endpoint)
+// This would process the login logic and likely return JSON, not a rendered view.
+// The form in 'login.hbs' might submit to this endpoint.
+router.post('/users/login', authController_1.loginUser);
+// You would typically have a similar POST endpoint for registration:
+// router.post('/users/register', someRegisterControllerFunction);
 exports.default = router;

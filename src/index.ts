@@ -1,13 +1,17 @@
+// src/index.ts
+
 import express from 'express';
+import connectDB from './config/db';
 import { engine } from 'express-handlebars';
 import userRoutes from './routes/userRoutes';
 import authRoutes from './routes/authRoutes';
 import path from 'path';
 
+connectDB();
 const app = express();
 const PORT = 3000;
 
-// Handlebars view 
+// Handlebars view engine setup
 app.engine('hbs', engine({
   extname: '.hbs', 
   defaultLayout: 'main', 
@@ -16,18 +20,21 @@ app.engine('hbs', engine({
 }));
 
 app.set('view engine', 'hbs');
-app.set('views', path.join(__dirname, '..', 'src', 'views')); 
+app.set('views', path.join(__dirname, 'views'));
 
-app.use(express.urlencoded({ extended: true })); // Handles HTML form data
-app.use(express.static(path.join(__dirname, '..', 'src', 'public'))); // Serves static files
-
+// Middleware
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(userRoutes);
-app.use(authRoutes);
+app.use(express.static(path.join(__dirname, 'public')));
 
-//Clarify API is running in root dir
+// Routes
+// Use specific base paths for your API routes to avoid conflicts
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
+
+// Root route to render a Handlebars view
 app.get('/', (req, res) => {
-  res.send('API is running!');
+  res.render('login', { pageTitle: 'Login' });
 });
 
 app.listen(PORT, () => {

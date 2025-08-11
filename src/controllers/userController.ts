@@ -1,77 +1,109 @@
+// src/controllers/userController.ts
+
 import { Request, Response } from 'express';
-import { User } from '../types/users';
-import { readUsers, writeUsers } from '../services/userServices';
+// Import all functions from the user services file
+import {
+  getAllUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+  searchUsers
+} from '../services/userServices';
 
-export const getAllUsers = (req: Request, res: Response) => {
-  const users = readUsers();
-  res.json(users);
-};
-
-export const getUserById = (req: Request, res: Response) => {
-  const users = readUsers();
-  const user = users.find(u => u.id === parseInt(req.params.id));
-  if (!user) return res.status(404).json({ message: "User not found" });
-  res.json(user);
-};
-
-export const createUser = (req: Request, res: Response) => {
-  const { name, email, password } = req.body;
-  if (!name || !email || !password || password.length < 6) {
-    return res.status(400).json({ message: 'Invalid input' });
+// @desc    Get all users
+// @route   GET /api/users
+// @access  Public
+export const getAllUsersController = async (req: Request, res: Response) => {
+  try {
+    const users = await getAllUsers();
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
-  const users = readUsers();
-  const newUser = new User(
-    users.length ? users[users.length - 1].id + 1 : 1,
-    name,
-    email,
-    password
-  );
-  users.push(newUser);
-  writeUsers(users);
-  res.status(201).json(newUser);
 };
 
-export const updateUser = (req: Request, res: Response) => {
-  const users = readUsers();
-  const index = users.findIndex(u => u.id === parseInt(req.params.id));
-  if (index === -1) return res.status(404).json({ message: "User not found" });
-
-  const { name, email, password } = req.body;
-  if (password && password.length < 6) {
-    return res.status(400).json({ message: 'Password must be at least 6 characters' });
+// @desc    Get a single user by ID
+// @route   GET /api/users/:id
+// @access  Public
+export const getUserByIdController = async (req: Request, res: Response) => {
+  try {
+    const user = await getUserById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
   }
-
-  users[index] = new User(
-    users[index].id,
-    name || users[index].name,
-    email || users[index].email,
-    password || users[index].password
-  );
-
-  writeUsers(users);
-  res.json(users[index]);
 };
 
-export const deleteUser = (req: Request, res: Response) => {
-  const users = readUsers();
-  const index = users.findIndex(u => u.id === parseInt(req.params.id));
-  if (index === -1) return res.status(404).json({ message: "User not found" });
-
-  const deletedUser = users.splice(index, 1)[0];
-  writeUsers(users);
-  res.json(deletedUser);
+// @desc    Create a new user
+// @route   POST /api/users
+// @access  Public
+export const createUserController = async (req: Request, res: Response) => {
+  const { name, email, password } = req.body;
+  try {
+    const newUser = await createUser(name, email, password);
+    const userResponse = {
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+    };
+    res.status(201).json(userResponse);
+  } catch (error) {
+    if (error.message === 'User already exists') {
+      return res.status(400).json({ message: 'User already exists' });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
-export const searchUsers = (req: Request, res: Response) => {
+// @desc    Update a user
+// @route   PUT /api/users/:id
+// @access  Public
+export const updateUserController = async (req: Request, res: Response) => {
+  const { name, email, password } = req.body;
+  try {
+    const updatedUser = await updateUser(req.params.id, name, email, password);
+    const userResponse = {
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+    };
+    res.json(userResponse);
+  } catch (error) {
+    if (error.message === 'User not found') {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Delete a user
+// @route   DELETE /api/users/:id
+// @access  Public
+export const deleteUserController = async (req: Request, res: Response) => {
+  try {
+    const user = await deleteUser(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json({ message: 'User removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Search for users by name or email
+// @route   GET /api/users/search?query=...
+// @access  Public
+export const searchUsersController = async (req: Request, res: Response) => {
   const query = (req.query.query as string || '').toLowerCase();
-  const users = readUsers();
-  const filtered = users.filter(u =>
-    u.name.toLowerCase().includes(query) ||
-    u.email.toLowerCase().includes(query)
-  ).map(u => ({
-    id: u.id,
-    name: u.name,
-    email: u.email
-  }));
-  res.json(filtered);
+  try {
+    const users = await searchUsers(query);
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
 };

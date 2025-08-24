@@ -1,5 +1,4 @@
 "use strict";
-// src/controllers/userController.ts
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -11,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.searchUsersController = exports.deleteUserController = exports.updateUserController = exports.createUserController = exports.getUserByIdController = exports.getAllUsersController = void 0;
-// Import all functions from the user services file
 const userServices_1 = require("../services/userServices");
 // @desc    Get all users
 // @route   GET /api/users
@@ -66,10 +64,18 @@ const createUserController = (req, res) => __awaiter(void 0, void 0, void 0, fun
 exports.createUserController = createUserController;
 // @desc    Update a user
 // @route   PUT /api/users/:id
-// @access  Public
+// @access  Private (JWT)
 const updateUserController = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, email, password } = req.body;
     try {
+        // Ensure user is authenticated
+        if (!req.user) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+        // Only allow users to update their own data
+        if (req.user.id !== req.params.id) {
+            return res.status(403).json({ message: 'Not authorized to update this user' });
+        }
         const updatedUser = yield (0, userServices_1.updateUser)(req.params.id, name, email, password);
         const userResponse = {
             _id: updatedUser._id,
@@ -88,9 +94,15 @@ const updateUserController = (req, res) => __awaiter(void 0, void 0, void 0, fun
 exports.updateUserController = updateUserController;
 // @desc    Delete a user
 // @route   DELETE /api/users/:id
-// @access  Public
+// @access  Private (JWT)
 const deleteUserController = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.user) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+        if (req.user.id !== req.params.id) {
+            return res.status(403).json({ message: 'Not authorized to delete this user' });
+        }
         const user = yield (0, userServices_1.deleteUser)(req.params.id);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });

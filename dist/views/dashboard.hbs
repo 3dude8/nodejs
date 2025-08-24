@@ -2,19 +2,35 @@
 
 <div class="dashboard-container">
     <h2>{{pageTitle}}</h2>
-    <p>{{message}}</p>
+    
+    {{#if message}}
+        <p class="welcome-message">{{message}}</p>
+    {{/if}}
 
-    <p>Welcome to your personalized dashboard, {{userName}}!</p>
-    <p>Your email: <strong>{{userEmail}}</strong></p> 
+    <div class="user-info">
+        <h3>Welcome, {{userName}}!</h3>
+        <p><strong>Email:</strong> {{userEmail}}</p>
+    </div>
 
-    <h3>Your Recent Activity:</h3>
-    <ul>
-        {{#each recentActivities}}
-            <li>{{this}}</li>
+    <div class="activity-section">
+        <h3>Recent Activity</h3>
+        <ul class="activity-list">
+            {{#each recentActivities}}
+                <li>{{this}}</li>
+            {{else}}
+                <li>No recent activity to display.</li>
+            {{/each}}
+        </ul>
+    </div>
+
+    <div class="dashboard-actions">
+        <a href="/posts?name={{userName}}&email={{userEmail}}" class="btn-primary">View All Posts</a>
+        <a href="/create-post?name={{userName}}&email={{userEmail}}" class="btn-primary">Create New Post</a>
+        {{#if currentUser}}
+            <a href="/logout" class="btn-secondary">Logout</a>
         {{else}}
-            <li>No recent activity to display.</li>
-        {{/each}}
-    </ul>
-
-    <a href="/logout">Logout</a>
+            <a href="/register" class="btn-secondary">Register</a>
+            <a href="/" class="btn-secondary">Login</a>
+        {{/if}}
+    </div>
 </div>

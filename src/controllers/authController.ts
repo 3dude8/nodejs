@@ -1,9 +1,17 @@
 // src/controllers/authController.ts
-
 import { Request, Response } from 'express';
-// Import the services
 import { authenticateUser } from '../services/authServices';
 import { createUser } from '../services/userServices';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'SecretKey';
+const JWT_EXPIRES_IN = '1h'; // token expiration
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: false, // Always allow HTTP (simpler)
+  sameSite: 'strict' as const,
+  maxAge: 60 * 60 * 1000 // 1 hour 
+};
 
 // @desc    Register a new user
 // @route   POST /api/auth/register
@@ -13,22 +21,23 @@ export const registerUser = async (req: Request, res: Response) => {
 
   try {
     const newUser = await createUser(name, email, password);
-    res.status(201).json({
-      message: 'Registration successful',
-      user: {
-        id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-      },
-    });
-  } catch (error) {
+
+    const token = jwt.sign(
+      { id: newUser._id, name: newUser.name, email: newUser.email },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    // 🔹 Send token in a secure HTTP-only cookie
+    res.cookie('jwt_token', token, COOKIE_OPTIONS);
+    return res.redirect('/posts');
+  } catch (error: any) {
     if (error.message === 'User already exists') {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).send('User already exists');
     }
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).send('Server error');
   }
 };
-
 
 // @desc    Authenticate a user
 // @route   POST /api/auth/login
@@ -38,25 +47,30 @@ export const loginUser = async (req: Request, res: Response) => {
 
   try {
     const user = await authenticateUser(email, password);
-    if (user) {
-      res.json({
-        message: 'Login successful',
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-        },
-      });
-    } else {
-      res.status(401).json({ message: 'Invalid credentials' });
+
+    if (!user) {
+      return res.status(401).send('Invalid credentials');
     }
+
+    const token = jwt.sign(
+      { id: user._id, name: user.name, email: user.email },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    // 🔹 Send token in a secure HTTP-only cookie
+    res.cookie('jwt_token', token, COOKIE_OPTIONS);
+    return res.redirect('/posts');
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).send('Server error');
   }
 };
 
-
+// @desc    Logout user
+// @route   GET /api/auth/logout
+// @access  Public
 export const logoutUser = (req: Request, res: Response) => {
-  console.log('User logged out');
+  // Clear the JWT cookie
+  res.clearCookie('jwt_token');
   res.redirect('/');
 };

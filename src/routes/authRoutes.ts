@@ -1,18 +1,15 @@
-// src/routes/authRoutes.ts
-
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
 import { registerUser, loginUser, logoutUser } from '../controllers/authController';
 
 const router = Router();
 
-// API endpoint for new user registration
+// Register new user
 router.post('/register', registerUser);
 
-// Corrected API endpoint for user login
-// Changed from '/users/login' to '/login'
+// Login user
 router.post('/login', loginUser);
 
-// API endpoint for user logout
+// Optional logout route (just for client message)
 router.get('/logout', logoutUser);
 
 export default router;

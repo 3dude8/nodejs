@@ -1,7 +1,5 @@
 // src/controllers/userController.ts
-
 import { Request, Response } from 'express';
-// Import all functions from the user services file
 import {
   getAllUsers,
   getUserById,
@@ -10,6 +8,15 @@ import {
   deleteUser,
   searchUsers
 } from '../services/userServices';
+
+// Extend Request to include JWT user info
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -51,7 +58,7 @@ export const createUserController = async (req: Request, res: Response) => {
       email: newUser.email,
     };
     res.status(201).json(userResponse);
-  } catch (error) {
+  } catch (error: any) {
     if (error.message === 'User already exists') {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -61,10 +68,21 @@ export const createUserController = async (req: Request, res: Response) => {
 
 // @desc    Update a user
 // @route   PUT /api/users/:id
-// @access  Public
-export const updateUserController = async (req: Request, res: Response) => {
+// @access  Private (JWT)
+export const updateUserController = async (req: AuthenticatedRequest, res: Response) => {
   const { name, email, password } = req.body;
+
   try {
+    // Ensure user is authenticated
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    // Only allow users to update their own data
+    if (req.user.id !== req.params.id) {
+      return res.status(403).json({ message: 'Not authorized to update this user' });
+    }
+
     const updatedUser = await updateUser(req.params.id, name, email, password);
     const userResponse = {
       _id: updatedUser._id,
@@ -72,7 +90,7 @@ export const updateUserController = async (req: Request, res: Response) => {
       email: updatedUser.email,
     };
     res.json(userResponse);
-  } catch (error) {
+  } catch (error: any) {
     if (error.message === 'User not found') {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -82,9 +100,17 @@ export const updateUserController = async (req: Request, res: Response) => {
 
 // @desc    Delete a user
 // @route   DELETE /api/users/:id
-// @access  Public
-export const deleteUserController = async (req: Request, res: Response) => {
+// @access  Private (JWT)
+export const deleteUserController = async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'Not authorized' });
+    }
+
+    if (req.user.id !== req.params.id) {
+      return res.status(403).json({ message: 'Not authorized to delete this user' });
+    }
+
     const user = await deleteUser(req.params.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });

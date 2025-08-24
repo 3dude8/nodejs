@@ -1,0 +1,38 @@
+{{!-- src/views/create-post.hbs --}}
+
+<div class="form-container">
+    <h2>{{pageTitle}}</h2>
+    
+    <form action="/api/posts" method="POST" class="post-form">
+        <!-- Hidden fields to pass user info -->
+        <input type="hidden" name="userName" value="{{currentUser.name}}">
+        <input type="hidden" name="userEmail" value="{{currentUser.email}}">
+        
+        <!-- Debug: Show user info (remove this later) -->
+        <div class="debug-info" style="background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc;">
+            <p><strong>Debug Info:</strong></p>
+            <p>Current User: {{currentUser.name}} ({{currentUser.email}})</p>
+            <p>User Name Value: "{{currentUser.name}}"</p>
+            <p>User Email Value: "{{currentUser.email}}"</p>
+        </div>
+        
+        <div class="form-group">
+            <label for="title">Post Title:</label>
+            <input type="text" id="title" name="title" required maxlength="200" 
+                   placeholder="Enter your post title">
+        </div>
+        
+        <div class="form-group">
+            <label for="content">Content:</label>
+            <textarea id="content" name="content" required rows="10" 
+                      placeholder="Write your post content here..."></textarea>
+        </div>
+        
+        
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">Create Post</button>
+            <a href="/posts?name={{currentUser.name}}&email={{currentUser.email}}" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>

@@ -1,28 +1,32 @@
 {{!-- src/views/register.hbs --}}
 
-<div class="auth-container">
+<div class="form-container">
     <h2>{{pageTitle}}</h2>
-    <p>{{message}}</p>
+    
+    {{#if message}}
+        <p class="message">{{message}}</p>
+    {{/if}}
 
-    <div class="form-section register-form">
-        <h3>Create a New Account</h3>
-        <form action="/auth/register" method="POST"> {{!-- This would be your POST /auth/register endpoint --}}
-            <div class="form-group">
-                <label for="register-name">Name:</label>
-                <input type="text" id="register-name" name="name" required>
-            </div>
-            <div class="form-group">
-                <label for="register-email">Email:</label>
-                <input type="email" id="register-email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="register-password">Password:</label>
-                <input type="password" id="register-password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-success">Register</button>
-        </form>
-        <p>Already have an account? <a href="/login">Login here</a>.</p>
+    <form action="/api/auth/register" method="POST" class="auth-form">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required placeholder="Enter your full name">
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required placeholder="Enter your email">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required placeholder="Enter your password">
+        </div>
+        
+        <button type="submit" class="btn-primary">Create Account</button>
+    </form>
+
+    <div class="form-footer">
+        <p>Already have an account? <a href="/" class="link">Login here</a></p>
     </div>
-
-    <p class="footer-note">Current time in Palestine: {{currentTime}}</p>
 </div>

@@ -1,0 +1,80 @@
+{{!-- src/views/posts.hbs --}}
+
+<div class="posts-container">
+    <div class="posts-header">
+        <h2>{{pageTitle}}</h2>
+        {{#if currentUser}}
+            <a href="/create-post?name={{currentUser.name}}&email={{currentUser.email}}" class="btn-primary">Create New Post</a>
+        {{/if}}
+    </div>
+
+    {{#if posts.length}}
+        <div class="posts-grid">
+            {{#each posts}}
+                <div class="post-card">
+                    <div class="post-header">
+<h3><a href="/posts/{{this._id}}">{{this.title}}</a></h3>
+                        <div class="post-meta">
+<span class="author">By {{#if this.author}}{{this.author.name}}{{else}}Unknown{{/if}}</span>
+                            <span class="date">{{formatDate this.createdAt}}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="post-content">
+                        <p>{{truncate this.content 150}}</p>
+                    </div>
+                    
+                    <div class="post-footer">
+                        <div class="post-stats">
+                            <span class="likes-count">
+                                <i class="fas fa-heart"></i> {{this.likes.length}} likes
+                            </span>
+                            {{#if this.tags.length}}
+                                <div class="tags">
+                                    {{#each this.tags}}
+                                        <span class="tag">{{this}}</span>
+                                    {{/each}}
+                                </div>
+                            {{/if}}
+                        </div>
+                        
+                        {{#if ../currentUser}}
+                            <button class="like-btn" data-post-id="{{this._id}}" style="display: inline-flex !important; visibility: visible !important; opacity: 1 !important;">
+                                <i class="fas fa-heart"></i>
+                                <span class="like-text">Like</span>
+                            </button>
+                            <!-- Debug: User is logged in -->
+                        {{else}}
+                            <span style="color: #7f8c8d; font-size: 0.9rem;">Login to like</span>
+                            <!-- Debug: User is NOT logged in -->
+                        {{/if}}
+                    </div>
+                </div>
+            {{/each}}
+        </div>
+
+        {{#if pagination}}
+            <div class="pagination">
+                {{#if pagination.hasPrev}}
+                    <a href="/posts?page={{subtract pagination.currentPage 1}}&name={{currentUser.name}}&email={{currentUser.email}}" class="page-link">Previous</a>
+                {{/if}}
+                
+                <span class="current-page">Page {{pagination.currentPage}} of {{pagination.totalPages}}</span>
+                
+                {{#if pagination.hasNext}}
+                    <a href="/posts?page={{add pagination.currentPage 1}}&name={{currentUser.name}}&email={{currentUser.email}}" class="page-link">Next</a>
+                {{/if}}
+            </div>
+        {{/if}}
+    {{else}}
+        <div class="no-posts">
+            <p>No posts found.</p>
+            {{#if currentUser}}
+                <a href="/create-post?name={{currentUser.name}}&email={{currentUser.email}}" class="btn-primary">Create the first post!</a>
+            {{/if}}
+        </div>
+    {{/if}}
+
+
+
+</div>

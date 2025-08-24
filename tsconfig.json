@@ -5,7 +5,11 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src/**/*.ts", "src/types/**/*.d.ts"]
 }

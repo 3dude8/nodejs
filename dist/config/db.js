@@ -16,11 +16,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const conn = yield mongoose_1.default.connect('mongodb://localhost:27017/yourdbname'); // Replace 'yourdbname' with your desired database name
-        console.log(`MongoDB Connected: ${conn.connection.host} ✅`);
+        console.log('🔄 Attempting to connect to MongoDB...');
+        const conn = yield mongoose_1.default.connect('mongodb://localhost:27017/blogapp');
+        console.log(`✅ MongoDB Connected Successfully!`);
+        console.log(`   Host: ${conn.connection.host}`);
+        console.log(`   Database: ${conn.connection.name}`);
+        console.log(`   Port: ${conn.connection.port}`);
+        // Listen for connection events
+        mongoose_1.default.connection.on('connected', () => {
+            console.log('🎉 Mongoose connected to MongoDB');
+        });
+        mongoose_1.default.connection.on('error', (err) => {
+            console.error('❌ Mongoose connection error:', err);
+        });
+        mongoose_1.default.connection.on('disconnected', () => {
+            console.log('⚠️  Mongoose disconnected from MongoDB');
+        });
     }
     catch (error) {
-        console.error(`Error: ${error.message} ❌`);
+        console.error(`❌ MongoDB Connection Failed:`);
+        console.error(`   Error: ${error.message}`);
+        console.error(`   Make sure MongoDB is running on localhost:27017`);
         process.exit(1);
     }
 });

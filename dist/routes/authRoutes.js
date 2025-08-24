@@ -1,14 +1,12 @@
 "use strict";
-// src/routes/authRoutes.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const authController_1 = require("../controllers/authController");
 const router = (0, express_1.Router)();
-// API endpoint for new user registration
+// Register new user
 router.post('/register', authController_1.registerUser);
-// Corrected API endpoint for user login
-// Changed from '/users/login' to '/login'
+// Login user
 router.post('/login', authController_1.loginUser);
-// API endpoint for user logout
+// Optional logout route (just for client message)
 router.get('/logout', authController_1.logoutUser);
 exports.default = router;

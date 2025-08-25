@@ -131,13 +131,18 @@ exports.getPosts = getPosts;
 const getPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const post = yield postServices.getPostById(req.params.id);
+        // Fetch comments for this post
+        const commentServices = yield Promise.resolve().then(() => __importStar(require('../services/commentServices')));
+        const comments = yield commentServices.getCommentsForPost(req.params.id);
         res.render('post-detail', {
             pageTitle: post.title,
             post,
+            comments,
             currentUser: req.user // ✅ keeps user
         });
     }
     catch (error) {
+        console.error('Error in getPost:', error);
         res.status(404).render('error', {
             pageTitle: 'Post Not Found',
             message: 'Post not found'
@@ -196,8 +201,11 @@ exports.deletePost = deletePost;
 const togglePostLike = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id))
+        if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.id)) {
+            console.log('No user found in request:', req.user);
             return res.status(401).json({ message: 'You must be logged in to like a post' });
+        }
+        console.log('User attempting to like post:', req.user.id, 'Post ID:', req.params.id);
         const post = yield postServices.togglePostLike(req.params.id, req.user.id);
         res.json({
             message: 'Post like toggled successfully',
@@ -206,9 +214,10 @@ const togglePostLike = (req, res) => __awaiter(void 0, void 0, void 0, function*
         });
     }
     catch (error) {
+        console.error('Error in togglePostLike:', error);
         if (error.message === 'Post not found')
             return res.status(404).json({ message: 'Post not found' });
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error: ' + error.message });
     }
 });
 exports.togglePostLike = togglePostLike;

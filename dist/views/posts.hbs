@@ -39,10 +39,14 @@
                         </div>
                         
                         {{#if ../currentUser}}
-                            <button class="like-btn" data-post-id="{{this._id}}">
+                            <button class="like-btn" data-post-id="{{this._id}}" style="display: inline-flex !important; visibility: visible !important; opacity: 1 !important;">
                                 <i class="fas fa-heart"></i>
                                 <span class="like-text">Like</span>
                             </button>
+                            <!-- Debug: User is logged in -->
+                        {{else}}
+                            <span style="color: #7f8c8d; font-size: 0.9rem;">Login to like</span>
+                            <!-- Debug: User is NOT logged in -->
                         {{/if}}
                     </div>
                 </div>
@@ -71,36 +75,6 @@
         </div>
     {{/if}}
 
-    <script>
-  document.querySelectorAll('.like-btn').forEach(button => {
-    button.addEventListener('click', async () => {
-      const postId = button.dataset.postId;
 
-      try {
-        const response = await fetch(`/api/posts/${postId}/like`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-            credentials: 'include' // ensure session cookie is sent
-
-        });
-
-        if (response.ok) {
-          const post = await response.json();
-          const likesCount = button.closest('.post-footer').querySelector('.likes-count');
-          likesCount.textContent = `❤️ ${post.likes.length} likes`;
-        } else if (response.status === 401) {
-          alert('You must be logged in to like a post.');
-        } else {
-          alert('Failed to like the post.');
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Error liking the post.');
-      }
-    });
-  });
-</script>
 
 </div>

@@ -26,21 +26,7 @@ header {
     overflow: hidden;
 }
 
-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
-    animation: shimmer 3s infinite;
-}
-
-@keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-}
+/* Removed glare effect */
 
 header h1 {
     margin-bottom: 1rem;
@@ -83,6 +69,8 @@ main {
     border-radius: 12px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 /* Footer */
@@ -323,6 +311,9 @@ footer p {
 /* Post Styles */
 .posts-container {
     padding: 20px;
+    max-width: 100%;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 .posts-header {
@@ -338,6 +329,8 @@ footer p {
     display: grid;
     gap: 1.5rem;
     margin-bottom: 2rem;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .post-card {
@@ -347,6 +340,9 @@ footer p {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     border-left: 4px solid #3498db;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .post-card:hover {
@@ -388,12 +384,18 @@ footer p {
     align-items: center;
     padding-top: 1rem;
     border-top: 1px solid #ecf0f1;
+    flex-wrap: wrap;
+    gap: 1rem;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .post-stats {
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
+    max-width: 100%;
 }
 
 .likes-count {
@@ -404,6 +406,8 @@ footer p {
 .tags {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    max-width: 100%;
 }
 
 .tag {
@@ -421,7 +425,17 @@ footer p {
     padding: 0.5rem 1rem;
     border-radius: 20px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 80px;
+    justify-content: center;
+    visibility: visible !important;
+    opacity: 1 !important;
+    text-decoration: none;
+    font-size: 0.9rem;
 }
 
 .like-btn:hover {
@@ -465,7 +479,17 @@ footer p {
 
 /* Post Detail */
 .post-detail-container {
-    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #3498db;
+    margin-bottom: 2rem;
+    max-width: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .post-detail-container h1 {
@@ -474,7 +498,27 @@ footer p {
     font-size: 2.5rem;
 }
 
-.post-content {
+.post-detail-container .post-header {
+    margin-bottom: 1.5rem;
+}
+
+.post-detail-container .post-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-bottom: 1rem;
+}
+
+.post-detail-container .post-meta .author {
+    font-weight: 600;
+}
+
+.post-detail-container .post-meta .date {
+    color: #7f8c8d;
+}
+
+.post-detail-container .post-content {
     font-size: 1.1rem;
     line-height: 1.8;
     margin: 2rem 0;
@@ -559,6 +603,47 @@ footer p {
     gap: 1rem;
     padding-top: 0.5rem;
     border-top: 1px solid #ecf0f1;
+}
+
+.comment-like-btn, .delete-comment-btn {
+    background: none;
+    border: none;
+    color: #7f8c8d;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.comment-like-btn:hover {
+    background: #ecf0f1;
+    color: #e74c3c;
+}
+
+.delete-comment-btn:hover {
+    background: #ecf0f1;
+    color: #e74c3c;
+}
+
+.comment-likes-count {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.replies {
+    margin-left: 2rem;
+    margin-top: 1rem;
+    border-left: 2px solid #ecf0f1;
+    padding-left: 1rem;
+}
+
+.reply {
+    background: #fff;
+    padding: 0.8rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    border: 1px solid #ecf0f1;
 }
 
 /* Form Enhancements */

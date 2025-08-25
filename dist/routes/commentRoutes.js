@@ -38,8 +38,8 @@ const express_1 = require("express");
 const commentController = __importStar(require("../controllers/commentController"));
 const router = (0, express_1.Router)();
 // API Routes
-router.post('/api/comments', commentController.createComment);
-router.put('/api/comments/:id', commentController.updateComment);
-router.delete('/api/comments/:id', commentController.deleteComment);
-router.post('/api/comments/:id/like', commentController.toggleCommentLike);
+router.post('/', commentController.createComment);
+router.put('/:id', commentController.updateComment);
+router.delete('/:id', commentController.deleteComment);
+router.post('/:id/like', commentController.toggleCommentLike);
 exports.default = router;

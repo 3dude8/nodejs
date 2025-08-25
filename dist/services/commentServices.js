@@ -37,13 +37,15 @@ const getCommentsForPost = (postId) => __awaiter(void 0, void 0, void 0, functio
     const comments = yield Comment_1.default.find({ post: postId, parentComment: null })
         .populate('author', 'name email')
         .populate('likes', 'name')
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .lean(); // Convert to plain JavaScript objects
     // Get replies for each comment
     for (let comment of comments) {
         const replies = yield Comment_1.default.find({ parentComment: comment._id })
             .populate('author', 'name email')
             .populate('likes', 'name')
-            .sort({ createdAt: 1 });
+            .sort({ createdAt: 1 })
+            .lean(); // Convert to plain JavaScript objects
         comment.replies = replies;
     }
     return comments;

@@ -64,7 +64,58 @@
         {{/if}}
 
         <div class="comments-list">
-            <p>Comments functionality will be available soon!</p>
+            {{#if comments.length}}
+                {{#each comments}}
+                    <div class="comment">
+                        <div class="comment-header">
+                            <span class="comment-author">{{#if this.author}}{{this.author.name}}{{else}}Unknown{{/if}}</span>
+                            <span class="comment-date">{{#if this.createdAt}}{{formatDate this.createdAt}}{{else}}Just now{{/if}}</span>
+                            {{#if this.isEdited}}
+                                <span class="edited">(edited)</span>
+                            {{/if}}
+                        </div>
+                        <div class="comment-content">
+                            <p>{{this.content}}</p>
+                        </div>
+                        <div class="comment-footer">
+                            {{#if ../currentUser}}
+                                {{#if (eq this.author._id ../currentUser.id)}}
+                                    <button class="delete-comment-btn" data-comment-id="{{this._id}}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                {{/if}}
+                            {{/if}}
+                        </div>
+                        
+                        {{#if this.replies.length}}
+                            <div class="replies">
+                                {{#each this.replies}}
+                                    <div class="reply">
+                                        <div class="comment-header">
+                                            <span class="comment-author">{{this.author.name}}</span>
+                                            <span class="comment-date">{{#if this.createdAt}}{{formatDate this.createdAt}}{{else}}Just now{{/if}}</span>
+                                        </div>
+                                        <div class="comment-content">
+                                            <p>{{this.content}}</p>
+                                        </div>
+                                        <div class="comment-footer">
+                                            {{#if ../../currentUser}}
+                                                {{#if (eq this.author._id ../../currentUser.id)}}
+                                                    <button class="delete-comment-btn" data-comment-id="{{this._id}}">
+                                                        <i class="fas fa-trash"></i> Delete
+                                                    </button>
+                                                {{/if}}
+                                            {{/if}}
+                                        </div>
+                                    </div>
+                                {{/each}}
+                            </div>
+                        {{/if}}
+                    </div>
+                {{/each}}
+            {{else}}
+                <p>No comments yet. Be the first to comment!</p>
+            {{/if}}
         </div>
     </div>
 </div>

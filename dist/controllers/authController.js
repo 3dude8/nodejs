@@ -16,13 +16,13 @@ exports.logoutUser = exports.loginUser = exports.registerUser = void 0;
 const authServices_1 = require("../services/authServices");
 const userServices_1 = require("../services/userServices");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'SecretKey';
 const JWT_EXPIRES_IN = '1h'; // token expiration
 const COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // true in production
+    secure: false, // Always allow HTTP (simpler)
     sameSite: 'strict',
-    maxAge: 60 * 60 * 1000 // 1 hour in milliseconds
+    maxAge: 60 * 60 * 1000 // 1 hour 
 };
 // @desc    Register a new user
 // @route   POST /api/auth/register

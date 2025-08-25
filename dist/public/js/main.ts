@@ -57,9 +57,18 @@ async function handlePostLike(event: Event): Promise<void> {
                 const likeText = btn.querySelector('.like-text');
                 if (likeText) likeText.textContent = 'Like';
             }
+        } else {
+            const errorData = await response.json();
+            if (response.status === 401) {
+                alert('Please log in to like posts');
+                window.location.href = '/';
+            } else {
+                alert(errorData.message || 'Error liking the post.');
+            }
         }
     } catch (error) {
         console.error('Error toggling post like:', error);
+        alert('Error liking the post.');
     }
 }
 

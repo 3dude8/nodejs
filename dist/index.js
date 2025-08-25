@@ -97,7 +97,7 @@ app.use((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         const token = req.cookies.jwt_token;
         if (token) {
             const jwt = require('jsonwebtoken');
-            const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+            const JWT_SECRET = process.env.JWT_SECRET || 'SecretKey';
             const decoded = jwt.verify(token, JWT_SECRET);
             req.user = decoded;
             res.locals.currentUser = decoded;
@@ -121,6 +121,7 @@ app.use('/api/comments', commentRoutes_1.default);
 // View routes for posts (these will render the Handlebars templates)
 // IMPORTANT: More specific routes must come BEFORE general routes
 app.get('/create-post', postController_1.renderCreatePostPage); // Changed to avoid conflicts
+app.get('/posts/:id', postController_1.getPost); // Individual post view
 app.get('/posts', postController_1.renderPostsPage);
 // Debug: Add a simple test route to see if routing works
 app.get('/debug-test', (req, res) => {
@@ -135,6 +136,10 @@ app.get('/test-create', (req, res) => {
 });
 // Root route to render a Handlebars view
 app.get('/', (req, res) => {
+    res.render('login', { pageTitle: 'Login' });
+});
+// Login page route
+app.get('/login', (req, res) => {
     res.render('login', { pageTitle: 'Login' });
 });
 // Registration page route

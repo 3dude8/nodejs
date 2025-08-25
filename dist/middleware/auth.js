@@ -17,7 +17,7 @@ const isAuthenticated = (req, res, next) => {
         next();
     }
     catch (err) {
-        return res.status(401).redirect('/login');
+        return res.status(401).redirect('/');
     }
 };
 exports.isAuthenticated = isAuthenticated;

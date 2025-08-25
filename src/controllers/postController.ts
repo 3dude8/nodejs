@@ -32,6 +32,7 @@ export const renderPostsPage = async (req: AuthenticatedRequest, res: Response) 
   try {
     const posts = await Post.find()
       .populate('author', 'name email')
+      .sort({ createdAt: -1 }) // Newest posts first
       .lean();
 
     const cleanPosts = posts.map(post => ({

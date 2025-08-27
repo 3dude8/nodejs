@@ -3,6 +3,7 @@
 import { AppDataSource } from '../config/data-source';
 import { User } from '../entities/User';
 import bcrypt from 'bcryptjs';
+import { getCache, setCache, deleteCache, cacheKeys } from '../utils/redis';
 
 // Function to get all users from the database
 export const getAllUsers = async () => {
@@ -11,7 +12,27 @@ export const getAllUsers = async () => {
 
 // Function to get a single user by ID
 export const getUserById = async (id: string) => {
-    return await AppDataSource.manager.findOne(User, { where: { id: parseInt(id) }, select: ['id', 'name', 'email', 'createdAt', 'updatedAt'] });
+    const cacheKey = cacheKeys.user(id);
+    
+    // Try to get from cache first
+    const cachedUser = await getCache(cacheKey);
+    if (cachedUser) {
+        console.log('📦 Cache hit for user');
+        return cachedUser;
+    }
+    
+    console.log('🔄 Cache miss for user, querying database');
+    const user = await AppDataSource.manager.findOne(User, { 
+        where: { id: parseInt(id) }, 
+        select: ['id', 'name', 'email', 'createdAt', 'updatedAt'] 
+    });
+    
+    if (user) {
+        // Cache the user profile for 15 minutes
+        await setCache(cacheKey, user, 900);
+    }
+    
+    return user;
 };
 
 // Function to create a new user
@@ -45,14 +66,25 @@ export const updateUser = async (id: string, name: string, email: string, passwo
     }
     user.name = name || user.name;
     user.email = email || user.email;
-    return await AppDataSource.manager.save(user);
+    
+    const updatedUser = await AppDataSource.manager.save(user);
+    
+    // Invalidate cache for this user
+    await deleteCache(cacheKeys.user(id));
+    
+    return updatedUser;
 };
 
 // Function to delete a user
 export const deleteUser = async (id: string) => {
     const user = await AppDataSource.manager.findOne(User, { where: { id: parseInt(id) } });
     if (user) {
-        return await AppDataSource.manager.remove(user);
+        const result = await AppDataSource.manager.remove(user);
+        
+        // Invalidate cache for this user
+        await deleteCache(cacheKeys.user(id));
+        
+        return result;
     }
     return null;
 };

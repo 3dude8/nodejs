@@ -4,6 +4,7 @@
 import 'dotenv/config'; // Load environment variables from .env file
 import express from 'express';
 import connectDB from './config/db';
+import { connectRedis } from './config/redis';
 import { isAuthenticated } from './middleware/auth';
 
 import { engine } from 'express-handlebars';
@@ -17,7 +18,10 @@ import commentRoutes from './routes/commentRoutes';
 import { renderPostsPage, renderCreatePostPage, getPost } from './controllers/postController';
 import path from 'path';
 
+// Initialize databases
 connectDB();
+connectRedis();
+
 const app = express();
 const PORT = 3000;
 

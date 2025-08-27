@@ -3,6 +3,8 @@ import { Post } from '../entities/Post';
 import { Comment } from '../entities/Comment';
 import { User } from '../entities/User';
 import { Like } from 'typeorm';
+import { getCache, setCache, deleteCache, cacheKeys } from '../utils/redis';
+import { CachedPostsResult, isCachedPostsResult, isPost } from '../types/cache';
 
 // Create a new post
 export const createPost = async (title: string, content: string, authorId: string, tags: string[] = []) => {
@@ -17,7 +19,17 @@ export const createPost = async (title: string, content: string, authorId: strin
 };
 
 // Get all posts with pagination
-export const getPosts = async (page: number = 1, limit: number = 10) => {
+export const getPosts = async (page: number = 1, limit: number = 10): Promise<CachedPostsResult> => {
+    const cacheKey = cacheKeys.posts(page, limit);
+    
+    // Try to get from cache first
+    const cachedData = await getCache<CachedPostsResult>(cacheKey);
+    if (cachedData && isCachedPostsResult(cachedData)) {
+        console.log('📦 Cache hit for posts');
+        return cachedData;
+    }
+    
+    console.log('🔄 Cache miss for posts, querying database');
     const skip = (page - 1) * limit;
     
     const [posts, total] = await AppDataSource.manager.findAndCount(Post, {
@@ -28,7 +40,7 @@ export const getPosts = async (page: number = 1, limit: number = 10) => {
         take: limit
     });
     
-    return {
+    const result: CachedPostsResult = {
         posts,
         pagination: {
             currentPage: page,
@@ -38,10 +50,27 @@ export const getPosts = async (page: number = 1, limit: number = 10) => {
             hasPrev: page > 1
         }
     };
+    
+    // Cache the first page of posts for 5 minutes
+    if (page === 1 && limit === 10) {
+        await setCache(cacheKey, result, 300);
+    }
+    
+    return result;
 };
 
 // Get a single post by ID
-export const getPostById = async (postId: string) => {
+export const getPostById = async (postId: string): Promise<Post> => {
+    const cacheKey = cacheKeys.post(postId);
+    
+    // Try to get from cache first
+    const cachedPost = await getCache<Post>(cacheKey);
+    if (cachedPost && isPost(cachedPost)) {
+        console.log('📦 Cache hit for post');
+        return cachedPost;
+    }
+    
+    console.log('🔄 Cache miss for post, querying database');
     const post = await AppDataSource.manager.findOne(Post, {
         where: { id: parseInt(postId) },
         relations: ['author', 'likes']
@@ -50,6 +79,9 @@ export const getPostById = async (postId: string) => {
     if (!post) {
         throw new Error('Post not found');
     }
+    
+    // Cache the post for 10 minutes
+    await setCache(cacheKey, post, 600);
     
     return post;
 };
@@ -70,7 +102,14 @@ export const updatePost = async (postId: string, authorId: string, updates: any)
     }
     
     Object.assign(post, updates);
-    return await AppDataSource.manager.save(post);
+    const updatedPost = await AppDataSource.manager.save(post);
+    
+    // Invalidate cache for this post
+    await deleteCache(cacheKeys.post(postId));
+    // Also invalidate the posts list cache since the content changed
+    await deleteCache(cacheKeys.posts(1, 10));
+    
+    return updatedPost;
 };
 
 // Delete a post
@@ -91,7 +130,13 @@ export const deletePost = async (postId: string, authorId: string) => {
     // Delete all comments for this post
     await AppDataSource.manager.delete(Comment, { post: { id: parseInt(postId) } });
     
-    return await AppDataSource.manager.remove(Post, post);
+    const result = await AppDataSource.manager.remove(Post, post);
+    
+    // Invalidate cache for this post and posts list
+    await deleteCache(cacheKeys.post(postId));
+    await deleteCache(cacheKeys.posts(1, 10));
+    
+    return result;
 };
 
 // Like/unlike a post

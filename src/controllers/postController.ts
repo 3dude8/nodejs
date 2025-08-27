@@ -30,9 +30,9 @@ export const renderCreatePostPage = (req: AuthenticatedRequest, res: Response) =
 export const renderPostsPage = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const result = await postServices.getPosts(1, 100); // Get first 100 posts
-    const posts = result.posts;
+    const posts = (result as any).posts;
 
-    const cleanPosts = posts.map(post => ({
+    const cleanPosts = posts.map((post: any) => ({
       ...post,
       content: post.content || '',
       createdAt: post.createdAt || new Date(),
@@ -88,8 +88,8 @@ export const getPosts = async (req: AuthenticatedRequest, res: Response) => {
 
     res.render('posts', {
       pageTitle: 'All Posts',
-      posts: result.posts,
-      pagination: result.pagination,
+      posts: (result as any).posts,
+      pagination: (result as any).pagination,
       currentUser: req.user // ✅ keeps user for buttons
     });
   } catch (error) {
@@ -109,7 +109,7 @@ export const getPost = async (req: AuthenticatedRequest, res: Response) => {
     const comments = await commentServices.getCommentsForPost(req.params.id);
 
     res.render('post-detail', {
-      pageTitle: post.title,
+      pageTitle: (post as any).title,
       post,
       comments,
       currentUser: req.user // ✅ keeps user

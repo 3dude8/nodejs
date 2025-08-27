@@ -14,37 +14,38 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.searchUsers = exports.deleteUser = exports.updateUser = exports.createUser = exports.getUserById = exports.getAllUsers = void 0;
-const User_1 = __importDefault(require("../models/User"));
+const data_source_1 = require("../config/data-source");
+const User_1 = require("../entities/User");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 // Function to get all users from the database
 const getAllUsers = () => __awaiter(void 0, void 0, void 0, function* () {
-    return yield User_1.default.find().select('-password'); // Exclude password from results
+    return yield data_source_1.AppDataSource.manager.find(User_1.User, { select: ['id', 'name', 'email', 'createdAt', 'updatedAt'] });
 });
 exports.getAllUsers = getAllUsers;
 // Function to get a single user by ID
 const getUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield User_1.default.findById(id).select('-password');
+    return yield data_source_1.AppDataSource.manager.findOne(User_1.User, { where: { id: parseInt(id) }, select: ['id', 'name', 'email', 'createdAt', 'updatedAt'] });
 });
 exports.getUserById = getUserById;
 // Function to create a new user
 const createUser = (name, email, password_sent) => __awaiter(void 0, void 0, void 0, function* () {
-    const userExists = yield User_1.default.findOne({ email });
+    const userExists = yield data_source_1.AppDataSource.manager.findOne(User_1.User, { where: { email } });
     if (userExists) {
         throw new Error('User already exists');
     }
     const salt = yield bcryptjs_1.default.genSalt(10);
     const hashedPassword = yield bcryptjs_1.default.hash(password_sent, salt);
-    const newUser = yield User_1.default.create({
-        name,
-        email,
-        password: hashedPassword,
-    });
+    const newUser = new User_1.User();
+    newUser.name = name;
+    newUser.email = email;
+    newUser.password = hashedPassword;
+    yield data_source_1.AppDataSource.manager.save(newUser);
     return newUser;
 });
 exports.createUser = createUser;
 // Function to update a user
 const updateUser = (id, name, email, password_sent) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield User_1.default.findById(id);
+    const user = yield data_source_1.AppDataSource.manager.findOne(User_1.User, { where: { id: parseInt(id) } });
     if (!user) {
         throw new Error('User not found');
     }
@@ -54,21 +55,24 @@ const updateUser = (id, name, email, password_sent) => __awaiter(void 0, void 0,
     }
     user.name = name || user.name;
     user.email = email || user.email;
-    return yield user.save();
+    return yield data_source_1.AppDataSource.manager.save(user);
 });
 exports.updateUser = updateUser;
 // Function to delete a user
 const deleteUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield User_1.default.findByIdAndDelete(id);
+    const user = yield data_source_1.AppDataSource.manager.findOne(User_1.User, { where: { id: parseInt(id) } });
+    if (user) {
+        return yield data_source_1.AppDataSource.manager.remove(user);
+    }
+    return null;
 });
 exports.deleteUser = deleteUser;
 // Function to search for users
 const searchUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    return yield User_1.default.find({
-        $or: [
-            { name: { $regex: query, $options: 'i' } },
-            { email: { $regex: query, $options: 'i' } },
-        ],
-    }).select('-password');
+    return yield data_source_1.AppDataSource.manager
+        .createQueryBuilder(User_1.User, 'user')
+        .select(['user.id', 'user.name', 'user.email', 'user.createdAt', 'user.updatedAt'])
+        .where('user.name LIKE :query OR user.email LIKE :query', { query: `%${query}%` })
+        .getMany();
 });
 exports.searchUsers = searchUsers;

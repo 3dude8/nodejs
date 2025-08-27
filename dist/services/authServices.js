@@ -14,13 +14,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authenticateUser = void 0;
-const User_1 = __importDefault(require("../models/User"));
+const data_source_1 = require("../config/data-source");
+const User_1 = require("../entities/User");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-// Function to authenticate a user against the MongoDB database
+// Function to authenticate a user against the database
 const authenticateUser = (email, password_sent) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Find the user by email
-        const user = yield User_1.default.findOne({ email });
+        const user = yield data_source_1.AppDataSource.manager.findOne(User_1.User, { where: { email } });
         // If the user exists and the password is correct, return the user
         if (user && (yield bcryptjs_1.default.compare(password_sent, user.password))) {
             return user;

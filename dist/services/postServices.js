@@ -8,35 +8,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.searchPosts = exports.togglePostLike = exports.deletePost = exports.updatePost = exports.getPostById = exports.getPosts = exports.createPost = void 0;
-const Post_1 = __importDefault(require("../models/Post"));
-const Comment_1 = __importDefault(require("../models/Comment"));
+const data_source_1 = require("../config/data-source");
+const Post_1 = require("../entities/Post");
+const Comment_1 = require("../entities/Comment");
+const User_1 = require("../entities/User");
+const typeorm_1 = require("typeorm");
 // Create a new post
 const createPost = (title_1, content_1, authorId_1, ...args_1) => __awaiter(void 0, [title_1, content_1, authorId_1, ...args_1], void 0, function* (title, content, authorId, tags = []) {
-    const post = yield Post_1.default.create({
-        title,
-        content,
-        author: authorId,
-        tags
-    });
-    // Always populate author since we're using real user IDs now
-    return yield post.populate('author', 'name email');
+    const post = new Post_1.Post();
+    post.title = title;
+    post.content = content;
+    post.author = { id: parseInt(authorId) };
+    post.tags = tags;
+    yield data_source_1.AppDataSource.manager.save(post);
+    return post;
 });
 exports.createPost = createPost;
 // Get all posts with pagination
 const getPosts = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (page = 1, limit = 10) {
     const skip = (page - 1) * limit;
-    const posts = yield Post_1.default.find({ isPublished: true })
-        .populate('author', 'name email')
-        .populate('likes', 'name')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit);
-    const total = yield Post_1.default.countDocuments({ isPublished: true });
+    const [posts, total] = yield data_source_1.AppDataSource.manager.findAndCount(Post_1.Post, {
+        where: { isPublished: true },
+        relations: ['author', 'likes'],
+        order: { createdAt: 'DESC' },
+        skip,
+        take: limit
+    });
     return {
         posts,
         pagination: {
@@ -51,10 +50,10 @@ const getPosts = (...args_1) => __awaiter(void 0, [...args_1], void 0, function*
 exports.getPosts = getPosts;
 // Get a single post by ID
 const getPostById = (postId) => __awaiter(void 0, void 0, void 0, function* () {
-    const post = yield Post_1.default.findById(postId)
-        .populate('author', 'name email')
-        .populate('likes', 'name email')
-        .lean();
+    const post = yield data_source_1.AppDataSource.manager.findOne(Post_1.Post, {
+        where: { id: parseInt(postId) },
+        relations: ['author', 'likes']
+    });
     if (!post) {
         throw new Error('Post not found');
     }
@@ -63,65 +62,74 @@ const getPostById = (postId) => __awaiter(void 0, void 0, void 0, function* () {
 exports.getPostById = getPostById;
 // Update a post
 const updatePost = (postId, authorId, updates) => __awaiter(void 0, void 0, void 0, function* () {
-    const post = yield Post_1.default.findById(postId);
+    const post = yield data_source_1.AppDataSource.manager.findOne(Post_1.Post, {
+        where: { id: parseInt(postId) },
+        relations: ['author']
+    });
     if (!post) {
         throw new Error('Post not found');
     }
-    if (post.author.toString() !== authorId) {
+    if (post.author.id.toString() !== authorId) {
         throw new Error('Not authorized to update this post');
     }
     Object.assign(post, updates);
-    return yield post.save();
+    return yield data_source_1.AppDataSource.manager.save(post);
 });
 exports.updatePost = updatePost;
 // Delete a post
 const deletePost = (postId, authorId) => __awaiter(void 0, void 0, void 0, function* () {
-    const post = yield Post_1.default.findById(postId);
+    const post = yield data_source_1.AppDataSource.manager.findOne(Post_1.Post, {
+        where: { id: parseInt(postId) },
+        relations: ['author']
+    });
     if (!post) {
         throw new Error('Post not found');
     }
-    if (post.author.toString() !== authorId) {
+    if (post.author.id.toString() !== authorId) {
         throw new Error('Not authorized to delete this post');
     }
     // Delete all comments for this post
-    yield Comment_1.default.deleteMany({ post: postId });
-    return yield Post_1.default.findByIdAndDelete(postId);
+    yield data_source_1.AppDataSource.manager.delete(Comment_1.Comment, { post: { id: parseInt(postId) } });
+    return yield data_source_1.AppDataSource.manager.remove(Post_1.Post, post);
 });
 exports.deletePost = deletePost;
 // Like/unlike a post
 const togglePostLike = (postId, userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const post = yield Post_1.default.findById(postId);
+    const post = yield data_source_1.AppDataSource.manager.findOne(Post_1.Post, {
+        where: { id: parseInt(postId) },
+        relations: ['likes']
+    });
     if (!post) {
         throw new Error('Post not found');
     }
-    const likeIndex = post.likes.findIndex(like => like.toString() === userId);
+    const likeIndex = post.likes.findIndex(like => like.id.toString() === userId);
     if (likeIndex > -1) {
         // Unlike
         post.likes.splice(likeIndex, 1);
     }
     else {
         // Like
-        post.likes.push(userId);
+        const user = yield data_source_1.AppDataSource.manager.findOne(User_1.User, { where: { id: parseInt(userId) } });
+        if (user) {
+            post.likes.push(user);
+        }
     }
-    yield post.save();
+    yield data_source_1.AppDataSource.manager.save(post);
     return post;
 });
 exports.togglePostLike = togglePostLike;
 // Search posts
 const searchPosts = (query_1, ...args_1) => __awaiter(void 0, [query_1, ...args_1], void 0, function* (query, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
-    const posts = yield Post_1.default.find({
-        $text: { $search: query },
-        isPublished: true
-    }, { score: { $meta: "textScore" } })
-        .populate('author', 'name email')
-        .populate('likes', 'name')
-        .sort({ score: { $meta: "textScore" } })
-        .skip(skip)
-        .limit(limit);
-    const total = yield Post_1.default.countDocuments({
-        $text: { $search: query },
-        isPublished: true
+    const [posts, total] = yield data_source_1.AppDataSource.manager.findAndCount(Post_1.Post, {
+        where: {
+            title: (0, typeorm_1.Like)(`%${query}%`),
+            isPublished: true
+        },
+        relations: ['author', 'likes'],
+        order: { createdAt: 'DESC' },
+        skip,
+        take: limit
     });
     return {
         posts,

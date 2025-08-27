@@ -11,8 +11,9 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'blogapp',
     synchronize: true, // Set to false in production, use migrations instead
-    logging: true,
+    logging: process.env.NODE_ENV === 'development',
     entities: [User, Post, Comment],
     migrations: [],
     subscribers: [],
+    driver: require('mysql2'),
 });

@@ -1,6 +1,7 @@
 // src/index.ts
 /// <reference path="./types/express-session.d.ts" />
 
+import 'dotenv/config'; // Load environment variables from .env file
 import express from 'express';
 import connectDB from './config/db';
 import { isAuthenticated } from './middleware/auth';

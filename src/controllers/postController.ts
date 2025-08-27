@@ -1,6 +1,5 @@
 // src/controllers/postController.ts
 import { Request, Response } from 'express';
-import Post from '../models/Post';
 import * as postServices from '../services/postServices';
 
 // Extend Request to include decoded JWT user info
@@ -30,10 +29,8 @@ export const renderCreatePostPage = (req: AuthenticatedRequest, res: Response) =
 // @access  Public
 export const renderPostsPage = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const posts = await Post.find()
-      .populate('author', 'name email')
-      .sort({ createdAt: -1 }) // Newest posts first
-      .lean();
+    const result = await postServices.getPosts(1, 100); // Get first 100 posts
+    const posts = result.posts;
 
     const cleanPosts = posts.map(post => ({
       ...post,

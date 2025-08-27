@@ -41,12 +41,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.togglePostLike = exports.deletePost = exports.updatePost = exports.getPost = exports.getPosts = exports.createPost = exports.renderPostsPage = exports.renderCreatePostPage = void 0;
-const Post_1 = __importDefault(require("../models/Post"));
 const postServices = __importStar(require("../services/postServices"));
 // @desc    Render create post page
 // @route   GET /posts/create
@@ -66,9 +62,8 @@ exports.renderCreatePostPage = renderCreatePostPage;
 // @access  Public
 const renderPostsPage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const posts = yield Post_1.default.find()
-            .populate('author', 'name email')
-            .lean();
+        const result = yield postServices.getPosts(1, 100); // Get first 100 posts
+        const posts = result.posts;
         const cleanPosts = posts.map(post => (Object.assign(Object.assign({}, post), { content: post.content || '', createdAt: post.createdAt || new Date(), author: post.author || { name: 'Unknown', email: '' }, likes: post.likes || [] })));
         res.render('posts', {
             pageTitle: 'All Posts',

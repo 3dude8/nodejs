@@ -1,13 +1,14 @@
 // src/services/authServices.ts
 
-import User from '../models/User';
+import { AppDataSource } from '../config/data-source';
+import { User } from '../entities/User';
 import bcrypt from 'bcryptjs';
 
-// Function to authenticate a user against the MongoDB database
+// Function to authenticate a user against the database
 export const authenticateUser = async (email: string, password_sent: string) => {
     try {
         // Find the user by email
-        const user = await User.findOne({ email });
+        const user = await AppDataSource.manager.findOne(User, { where: { email } });
 
         // If the user exists and the password is correct, return the user
         if (user && (await bcrypt.compare(password_sent, user.password))) {
